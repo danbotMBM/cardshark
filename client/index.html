@@ -31,7 +31,7 @@
     <p id="result2"></p>
     <script>
         // Create a WebSocket instance
-        const socket = new WebSocket('ws://localhost:8080');
+        const socket = new WebSocket('ws://danielmarkjones.com/cardshark_server');
 
         function play_card() {
             socket.send('{"msg_type":"play_card"}')
