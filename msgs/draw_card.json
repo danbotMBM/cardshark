@@ -1,0 +1,7 @@
+{
+    "msg_type":"draw_card",
+    "payload": {
+        "card":"<card>",
+        "player":"<connection_id>"
+    }
+}
