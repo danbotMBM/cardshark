@@ -27,11 +27,69 @@
         <input type="text" id="nameInput" name="name" required>
         <button type="button" onclick="join()">join</button>
     </form>
-    <button id="draw" onclick="play_card()">play card</button>
+    <div class="row align-items-center" , id="play_area">
+    </div>
+    <div class="row align-items-center" id="control-panel">
+        <button id="draw" onclick="play_card()">play card</button>
+    </div>
     <p id="result2"></p>
     <script>
         // Create a WebSocket instance
-        const socket = new WebSocket('ws://danielmarkjones.com/cardshark_server');
+        const socket = new WebSocket('ws://danielmarkjones.com:8081/cardshark_server');
+        //const socket = new WebSocket('ws://localhost:8080');
+        const players = {};
+
+        function add_player(pid, player) {
+            players[pid] = player;
+            play_area = document.getElementById("play_area");
+            new_div = document.createElement('div');
+            new_div.class = "col";
+            new_div.id = pid;
+            new_div.style.width = "100px";
+            new_div.style.margin = "20px";
+            new_div.style.fontSize = "30px";
+            new_div.style.height = "100px";
+            new_div.innerHTML = player.name + " " + player.hand;
+            play_area.appendChild(new_div);
+        }
+
+        function update_players_display() {
+            Object.entries(players).forEach(([pid, player]) => {
+                player_disp = document.getElementById(pid);
+                player_disp.innerHTML = player.name + " " + player.hand;
+            })
+        }
+
+        function process_state(state) {
+            console.log("state is:", state);
+            p = state["players"];
+            
+            Object.entries(p).forEach(([pid, player]) => {
+                if (!players.hasOwnProperty(pid)) {
+                    add_player(pid, player);
+                } else {
+                    Object.entries(p[pid]).forEach(([k, v]) => {
+                        players[pid][k] = v;
+                    });
+                }
+            });
+            update_players_display();
+            console.log(players);
+        }
+
+
+        function draw_card(msg){
+            console.log(players);
+            player = players[msg.player];
+            player.hand = msg.card;
+            update_players_display();
+        }
+
+        function round_win(msg){
+            document.getElementById(msg["player"]).innerHTML = "WIN";
+            Object.entries(players).forEach(([pid, player]) => player.hand = "None");
+            setTimeout(update_players_display, 1000);
+        }
 
         function play_card() {
             socket.send('{"msg_type":"play_card"}')
@@ -40,18 +98,26 @@
         function join() {
             const name = document.getElementById('nameInput').value;
             // Event listener for when the connection is opened
-            socket.send('{"msg_type":"join", "payload":{"name":"'+name+'"}}');
+            socket.send('{"msg_type":"join", "payload":{"name":"' + name + '"}}');
         }
         socket.addEventListener('open', (event) => {
-                console.log('WebSocket connection opened:', event);
-                
-            });
+            console.log('WebSocket connection opened:', event);
+        });
 
 
         // Event listener for when a message is received from the server
         socket.addEventListener('message', (event) => {
             console.log('Message from server:', event.data);
-
+            msg = JSON.parse(event.data);
+            if(msg.msg_type == "state"){
+                process_state(msg.payload);
+            }
+            if(msg.msg_type == "draw_card"){
+                draw_card(msg.payload);
+            }
+            if(msg.msg_type == "round_win"){
+                round_win(msg.payload);
+            }
             document.getElementById('result2').textContent = event.data
         });
 
