@@ -35,7 +35,7 @@ class room:
         return self
 
     async def broadcast(self, d):
-        for connection_id in self.connections.values():
+        for connection_id in self.connections:
             await send(connection_id, d)
 
     def start(self):
@@ -63,7 +63,7 @@ async def join_room(msg, connection_id):
         if r.join(connection_id):
             await r.broadcast({"msg": "player_join", "payload": r})
     else:
-        await send(connection_id, {"msg": "error"}, {"payload": {"text": "unable to join room" + r.id}})
+        await send(connection_id, {"msg": "error", "payload": {"text": "unable to join room" + room_id}})
 
 async def list_rooms(msg, connection_id):
     await send(connection_id, {"msg": "rooms", "payload": list(roommap.values())})
