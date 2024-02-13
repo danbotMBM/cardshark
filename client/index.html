@@ -28,14 +28,15 @@
         <button type="button" onclick="create_room()">create room</button>
     </form>
     <button type="button" onclick="list_rooms()">refresh rooms</button>
-    <div id="put">
+    <div class = "row"id="put_rooms">
+        
     </div>
     <p id="result2"></p>
     <script>
         // Create a WebSocket instance
         // const socket = new WebSocket('ws://danielmarkjones.com:8081/cardshark_server');
         const socket = new WebSocket('ws://localhost:8080');
-        
+    
         
         function rooms(p){
             put_area = document.getElementById("put");
