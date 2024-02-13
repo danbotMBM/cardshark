@@ -27,6 +27,7 @@
         <input type="text" id="room_id_input" required>
         <button type="button" onclick="create_room()">create room</button>
     </form>
+    <button type="button" onclick="list_rooms()">refresh rooms</button>
     <div id="put">
     </div>
     <p id="result2"></p>
@@ -39,17 +40,13 @@
         function rooms(p){
             put_area = document.getElementById("put");
             put_area.innerHTML = '';
-            console.log(p)
+            console.log(p);
             p.forEach(element => {
                 put_area = document.getElementById("put");
                 new_div = document.createElement('div');
                 new_div.class = "row";
                 new_div.id = element.id;
-                new_div.style.width = "100px";
-                new_div.style.margin = "20px";
-                new_div.style.fontSize = "30px";
-                new_div.style.height = "100px";
-                new_div.innerHTML = JSON.stringify(element);
+                new_div.innerHTML = '<button type="button" onclick="join_room(\''+element.id+'\')">join '+element.id+'</button>' +JSON.stringify(element);
                 put_area.appendChild(new_div);
             });
         }
@@ -60,15 +57,17 @@
             socket.send('{"msg":"create_room", "payload":{"room_id":"' + name + '"}}');
         }
 
-        function join() {
-            const name = document.getElementById('nameInput').value;
-            // Event listener for when the connection is opened
-            socket.send('{"msg":"join", "payload":{"name":"' + name + '"}}');
+        function list_rooms() {
+            socket.send('{"msg":"list_rooms"}');
+        }
+
+        function join_room(room_id) {
+            socket.send('{"msg":"join_room", "payload":{"room_id":"' + room_id + '"}}');
         }
 
         socket.addEventListener('open', (event) => {
             console.log('WebSocket connection opened:', event);
-            socket.send('{"msg":"list_rooms"}')
+            socket.send('{"msg":"list_rooms"}');
         });
 
 
@@ -79,7 +78,7 @@
             if(msg.msg == "rooms"){
                 rooms(msg.payload);
             }
-            document.getElementById('result2').textContent = event.data
+            document.getElementById('result2').textContent = event.data;
         });
 
         // Event listener for when the connection is closed

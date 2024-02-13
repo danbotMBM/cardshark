@@ -58,7 +58,7 @@ async def send(connection_id, d):
 
 async def join_room(msg, connection_id):
     room_id = str(msg["room_id"])
-    if room_id in roommap.keys() and not roommap[room_id].started:
+    if room_id in roommap.keys() and not roommap[room_id].started and not connection_id in roommap[room_id].connections:
         r = roommap[room_id]
         if r.join(connection_id):
             await r.broadcast({"msg": "player_join", "payload": r})
