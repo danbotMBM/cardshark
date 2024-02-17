@@ -28,7 +28,7 @@
             rooms.forEach(element => {
                 new_div = document.createElement('div');
                 new_div.class = "col-sm-2";
-                new_div.style = "margin:15px; border:black;"
+                new_div.style = "margin:15px; border: 2px solid #333;"
                 new_div.id = element.id;
                 // TODO code injection exploit
                 new_div.innerHTML = '<p>'+element.id+'<br>Owner: '+"TODO" + '<br>Players: ' + element.connections+ '<br></p>'
