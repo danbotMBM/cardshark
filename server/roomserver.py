@@ -5,6 +5,7 @@ import collections
 import time
 from websockets.server import serve
 from enum import Enum
+from cardshark import cardshark
 
 def public_encoder(o):
     return o.__json__()
@@ -14,6 +15,8 @@ class cnc:
         self.websocket = websocket
         self.name = None
         self.room = None
+    def __json__(self):
+        return {"connection_id": hash(self.websocket), "self.name": self.name, "room_id": self.room.id}
 
 #room ids to rooms
 roommap = {}
@@ -40,13 +43,19 @@ class room:
 
     def start(self):
         self.started == True
+        state = cardshark(self.room)
         return self.state.start()
 
     def disconnect(self, connection_id):
         global roommap
+        if self.started:
+            self.state.disconnect(self.connections[connection_id])
         self.connections.remove(connection_id)
         if len(self.connections) <= 0:
             del roommap[self.id]
+        elif self.owner_id == connection_id:
+            self.owner_id = self.connections[0]
+            #TODO send message to new owner to register that is owner
 
     def __json__(self):
         return {"id": str(self.id), "owner": str(self.owner_name), "connections": len(self.connections), "started": self.started}
@@ -91,7 +100,8 @@ function_map = {
     'join_room': join_room,
     'list_rooms': list_rooms,
     'start_game': start_game,
-    'create_room': create_room
+    'create_room': create_room,
+
 }
 
 
@@ -107,7 +117,10 @@ async def handle_connection(websocket, path):
         async for message in websocket:
             print(message)
             jm = json.loads(message)
-            await function_map[jm['msg']](jm.get("payload",{}), connection_id)
+            if connections[connection_id].room:
+                await connections[connection_id].room.state.handle()
+            else:
+                await function_map[jm['msg']](jm.get("payload",{}), connection_id)
     finally:
         # Connection closed, remove it from the dictionary
         print("CONNECTION CLOSED", roommap, connections)
