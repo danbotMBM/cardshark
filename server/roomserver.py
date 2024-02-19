@@ -13,10 +13,11 @@ def public_encoder(o):
 class cnc:
     def __init__(self, websocket):
         self.websocket = websocket
+        self.connection_id = hash(websocket)
         self.name = None
         self.room = None
     def __json__(self):
-        return {"connection_id": hash(self.websocket), "self.name": self.name, "room_id": self.room.id}
+        return {"connection_id": self.connection_id, "self.name": self.name, "room_id": self.room.id}
 
 #room ids to rooms
 roommap = {}
@@ -117,10 +118,11 @@ async def handle_connection(websocket, path):
         async for message in websocket:
             print(message)
             jm = json.loads(message)
-            if connections[connection_id].room:
-                await connections[connection_id].room.state.handle()
-            else:
-                await function_map[jm['msg']](jm.get("payload",{}), connection_id)
+            if jm['msg'] in function_map.keys():
+                if connections[connection_id].room.started:
+                    await connections[connection_id].room.state.handle(jm['msg'], jm.get("payload",{}), connection_id)
+                else:
+                    await function_map[jm['msg']](jm.get("payload",{}), connection_id)
     finally:
         # Connection closed, remove it from the dictionary
         print("CONNECTION CLOSED", roommap, connections)
