@@ -156,12 +156,12 @@ class cardshark:
         if msg in cardshark.function_map.keys():
             result, action= cardshark.function_map[msg](self, payload, connection_id)
             if result:
-                await self.room.broadcast({"msg": "state", "payload": self})
                 if action["type"] in ["raise", "call", "check", "fold"]:
                     winner, cards = self.game_table.next_player()
+                    await self.room.broadcast({"msg": "state", "payload": self})
                     if winner:
                         self.recent_operation = {"player":winner, "action": {"type": "win", "cards": cards}}
                         await self.room.broadcast({"msg": "state", "payload": self})
-                    
+                
             else:
                 await roomserver.send(connection_id, {"msg": "error"}, {"payload": {"text": action}})
