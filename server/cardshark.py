@@ -13,7 +13,7 @@ class player:
         self.name = "no name"
 
     def can_bet(self):
-        return self.hand and not self.fold
+        return self.hand and not self.fold and len(self.stack) > 0
 
     #serializes player to a level that is visible to all players in the game
     def __json__(self):
@@ -27,8 +27,11 @@ class player:
         return self.hand
 
     def bet_cards(self, num_cards):
-        cards = [self.stack.popleft() for _ in range(num_cards)]
-        self.bet_count += num_cards
+        if len(self.stack) >= num_cards:
+            cards = [self.stack.popleft() for _ in range(num_cards)]
+            self.bet_count += num_cards
+        else:
+            cards = self.bet_cards(len(self.stack))
         return cards
 
 class table:
@@ -48,13 +51,14 @@ class table:
     # a level that is visible to all players in the game
     def __json__(self):
         #TODO optimize stack send
-        return {"ante": self.ante, "dealer":self.dealer_queue[0], "stack": str(list(self.stack)), "turn_order": str(list(self.turn_queue))}
+        return {"ante": self.ante, "dealer":self.dealer_queue[0], "stack": str(list(self.stack)), "player_turn": self.turn_queue[0]}
     
     def place_cards(self, cards):
         self.stack.append(cards)
-        return {"played": cards}
+        return cards
     
     def next_player(dq):
+        #TODO insert round logic here?
         p = dq.popleft()
         dq.append(p)
 
@@ -67,18 +71,14 @@ class table:
             p.draw_card()
         
 
-    def play(self, msg):
-        #TODO handle message to place a bet
-        pass
-
 class cardshark:
     card_set = range(2,15)
+    
+
     def __init__(self, room):
         self.room = room
         self.game_table = table([player(i.name) for i in self.room.connections])
-    
-    def public_encoder(o):
-        return o.__json__()
+        self.recent_operation={}
 
     def deal_cards(self):
         cards = [x for x in cardshark.card_set for _ in range(4)]
@@ -89,9 +89,6 @@ class cardshark:
                 if not cards:
                     break
             
-    def play_round(game_table):
-        pass
-
     def start(self):
         self.deal_cards(self.deck, self.game_table)
 
@@ -102,34 +99,69 @@ class cardshark:
     def player_turn(self):
         return self.game_table.turn_queue[0]
     
+
+    # actions
+    # raise #
+    # call #
+    # check
+    # fold
+    # slap
+    # illegal slap
+    # win
+
+    
     def place_bet(self, payload, connection_id):
         if self.player_turn().connection.connection_id == connection_id:
-            if payload["num_cards"] == 0 and payload["num_cards"] + self.player_turn().bet_count() == self.game_table.current_bet:
+            if payload["num_cards"] == 0 and payload["num_cards"] + self.player_turn().bet_count == self.game_table.current_bet:
                 #check
-                pass
-            elif payload["num_cards"] + self.player_turn().bet_count() == self.game_table.current_bet:
+                self.recent_operation = {"player":self.player_turn(), "action": {"type": "check"}}
+                return True, self.recent_operation["action"]
+            elif payload["num_cards"] + self.player_turn().bet_count == self.game_table.current_bet:
                 #call
-                payload["num_cards"] + self.player_turn().bet_count() == self.game_table.current_bet
-            elif payload["num_cards"] + self.player_turn().bet_count() > self.game_table.current_bet:
+                num_betting = payload["num_cards"]
+                cards = self.player_turn().bet_cards(num_betting)
+                self.game_table.place_cards(cards)
+                self.recent_operation = {"player":self.player_turn(), "action": {"type": "call", "num": len(cards), "cards": cards}}
+                return True, self.recent_operation["action"]
+            elif payload["num_cards"] + self.player_turn().bet_count > self.game_table.current_bet:
                 #raise
-                payload["num_cards"] + self.player_turn().bet_count() == self.game_table.current_bet
+                num_betting = payload["num_cards"]
+                cards = self.player_turn().bet_cards(num_betting)
+                self.game_table.place_cards(cards)
+                self.game_table.current_bet = self.player_turn().bet_count
+                self.round_end_player = self.player_turn()
+                self.recent_operation = {"player":self.player_turn(), "action": {"type": "raise", "num": len(cards), "cards": cards}}
+                return True, self.recent_operation["action"]
             else:
                 #insufficient bet amount
-                pass
+                return False, "insufficient bet amount"
         else:
             #not your turn
+            return False, "not your turn"
             
-            self.player_turn().bet_cards(payload["num_cards"])
     def slap(self, payload, connection_id):
         pass
     def fold(self, payload, connection_id):
         pass
+
+    def __json__(self):
+        return {"room": self.room, "game_table": self.game_table, "recent_operation": self.recent_operation}
 
     function_map = {
         "place_bet": place_bet,
         "slap": slap,
         "fold": fold
     }
-    def handle(self, msg, payload, connection_id):
+    async def handle(self, msg, payload, connection_id):
         if msg in cardshark.function_map.keys():
-            cardshark.function_map[msg](self, payload, connection_id)
+            result, action= cardshark.function_map[msg](self, payload, connection_id)
+            if result:
+                await self.room.broadcast({"msg": "state", "payload": self})
+                if action["type"] in ["raise", "call", "check", "fold"]:
+                    winner, cards = self.game_table.next_player()
+                    if winner:
+                        self.recent_operation = {"player":winner, "action": {"type": "win", "cards": cards}}
+                        await self.room.broadcast({"msg": "state", "payload": self})
+                    
+            else:
+                await roomserver.send(connection_id, {"msg": "error"}, {"payload": {"text": action}})
