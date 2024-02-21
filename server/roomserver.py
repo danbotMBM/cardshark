@@ -18,6 +18,8 @@ class cnc:
         self.room = None
     def __json__(self):
         return {"connection_id": self.connection_id, "self.name": self.name, "room_id": self.room.id}
+    def __hash__(self):
+        return self.connection_id
 
 #room ids to rooms
 roommap = {}
