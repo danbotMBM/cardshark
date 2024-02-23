@@ -1,6 +1,6 @@
 // Create a WebSocket instance
-        // const socket = new WebSocket('ws://danielmarkjones.com:8081/cardshark_server');
-        const socket = new WebSocket('ws://localhost:8080');
+        const socket = new WebSocket('ws://danielmarkjones.com:8081/cardshark_server');
+        //const socket = new WebSocket('ws://localhost:8080');
         const canvas = document.querySelector('canvas')
         const c = canvas.getContext('2d')
         actors = {
