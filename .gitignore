@@ -6,3 +6,4 @@ photos/pics
 .venv
 *.pem
 command_scratchpad.txt
+__pycache__

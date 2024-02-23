@@ -1,6 +1,6 @@
 // Create a WebSocket instance
-        const socket = new WebSocket('ws://danielmarkjones.com:8081/cardshark_server');
-        //const socket = new WebSocket('ws://localhost:8080');
+        // const socket = new WebSocket('ws://danielmarkjones.com:8081/cardshark_server');
+        const socket = new WebSocket('ws://localhost:8080');
         const canvas = document.querySelector('canvas')
         const c = canvas.getContext('2d')
         actors = {
@@ -19,7 +19,7 @@
             draw(actors["background"]);
         }
         animate()
-        
+        my_connection_id = null
         
         function rooms(rooms){
             put_area = document.getElementById("put_rooms");
@@ -34,6 +34,8 @@
                 new_div.innerHTML = '<p>'+element.id+'<br>Owner: '+"TODO" + '<br>Players: ' + element.connections+ '<br></p>'
                 if (!element.started){
                   new_div.innerHTML += '<button type="button" onclick="join_room(\''+element.id+'\')">join '+element.id+'</button>';
+                }if (my_connection_id == element.owner_id){
+                    new_div.innerHTML += '<button type="button" onclick="start_game(\''+element.id+'\')">start game</button>';
                 }
                 put_area.appendChild(new_div);
             });
@@ -53,6 +55,10 @@
             socket.send('{"msg":"join_room", "payload":{"room_id":"' + room_id + '"}}');
         }
 
+        function start_game(room_id) {
+            socket.send('{"msg":"start_game", "payload":{"room_id":"' + room_id + '"}}');
+        }
+
         socket.addEventListener('open', (event) => {
             console.log('WebSocket connection opened:', event);
             socket.send('{"msg":"list_rooms"}');
@@ -65,6 +71,8 @@
             msg = JSON.parse(event.data);
             if(msg.msg == "rooms"){
                 rooms(msg.payload);
+            }else if (msg.msg == "connection_id"){
+                my_connection_id = msg.payload
             }
             document.getElementById('result2').textContent = event.data;
         });

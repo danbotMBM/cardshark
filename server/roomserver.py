@@ -46,7 +46,7 @@ class room:
 
     def start(self):
         self.started == True
-        state = cardshark(self.room)
+        self.state = cardshark(self.room)
         return self.state.start()
 
     def disconnect(self, connection_id):
@@ -61,7 +61,7 @@ class room:
             #TODO send message to new owner to register that is owner
 
     def __json__(self):
-        return {"id": str(self.id), "owner": str(self.owner_name), "connections": len(self.connections), "started": self.started}
+        return {"id": str(self.id), "owner": str(self.owner_name), "owner_id": self.owner_id, "connections": len(self.connections), "started": self.started}
 
 async def send(connection_id, d):
     assert type(d) == dict
@@ -113,6 +113,7 @@ connections = {}
 async def handle_connection(websocket, path):
     # Generate a unique ID for the connection
     connection_id = hash(websocket)
+    await websocket.send(json.dumps({"msg": "connection_id", "payload":connection_id}, default=public_encoder))
     # Store the connection in the dictionary
     connections[connection_id] = cnc(websocket)
     #TODO test if this accidentally resets the whole thing lol^
@@ -121,7 +122,7 @@ async def handle_connection(websocket, path):
             print(message)
             jm = json.loads(message)
             if jm['msg'] in function_map.keys():
-                if connections[connection_id].room.started:
+                if connections[connection_id].room and connections[connection_id].room.started:
                     await connections[connection_id].room.state.handle(jm['msg'], jm.get("payload",{}), connection_id)
                 else:
                     await function_map[jm['msg']](jm.get("payload",{}), connection_id)
