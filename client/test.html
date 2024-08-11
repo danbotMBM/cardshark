@@ -22,21 +22,16 @@
             </nav>
         </div>
     </header>
-    <form id="room_id_form">
-        <label for="room_id_input">Enter your room name:</label>
-        <input type="text" id="room_id_input" required>
-        <button type="button" onclick="create_room()">create room</button>
-    </form>
-    <button type="button" onclick="list_rooms()">refresh rooms</button>
-    <button type="button" onclick="start()">start</button>
-    <div class = "row"id="put_rooms">
-        
-    </div>
-    <div class = "row align-items-center justify-content-center" id ="playspace">
-        <canvas style="width: 80vw; height: 80vh; background-color:forestgreen;" id="playcanvas">
-    </div>
-    <p id="result2"></p>
-    <script src="game.js">
+    <label for="textbox">Enter your room name:</label>
+    <input type="text" id="textbox" required>
+    <button type="button" onclick="send_info()">send</button>
+    <button type="button" onclick="send_cmd('start')">start game</button>
+    <button type="button" onclick="send_cmd('play')">play card</button>
+    <button type="button" onclick="send_cmd('slap')">slap</button>
+
+    <p id="result"></p>
+    <h1 id="play_space">test</p>
+    <script src="test.js">
     </script>
     
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

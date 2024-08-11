@@ -5,7 +5,7 @@ import collections
 import time
 from websockets.server import serve
 from enum import Enum
-from cardshark import cardshark
+from simple_state import simple_state
 
 def public_encoder(o):
     return o.__json__()
@@ -46,7 +46,7 @@ class room:
 
     def start(self):
         self.started == True
-        self.state = cardshark(self.room)
+        self.state = simple_state(self.room)
         return self.state.start()
 
     def disconnect(self, connection_id):
@@ -123,7 +123,10 @@ async def handle_connection(websocket, path):
             jm = json.loads(message)
             if jm['msg'] in function_map.keys():
                 if connections[connection_id].room and connections[connection_id].room.started:
-                    await connections[connection_id].room.state.handle(jm['msg'], jm.get("payload",{}), connection_id)
+                    this_room = connections[connection_id].room
+                    result = this_room.state.handle(message)
+                    await this_room.send(connection_id, result)
+                    await this_room.broadcast(this_room.state)
                 else:
                     await function_map[jm['msg']](jm.get("payload",{}), connection_id)
     finally:

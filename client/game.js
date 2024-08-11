@@ -1,30 +1,30 @@
 // Create a WebSocket instance
         // const socket = new WebSocket('ws://danielmarkjones.com:8081/cardshark_server');
         const socket = new WebSocket('ws://localhost:8080');
-        const canvas = document.querySelector('canvas')
-        const c = canvas.getContext('2d')
-        actors = {
-            "background": [{"tl":[0,0], "sz":[1,1]}]
-        }
-        function draw(actors){
-            actors.forEach( actor => {
-                console.log(actor)
-                c.fillStyle = 'black'
-                c.fillRect(actor.tl[0], actor.tl[0], 10, 10)
-            })
+        // const canvas = document.querySelector('canvas')
+        // const c = canvas.getContext('2d')
+        // actors = {
+        //     "background": [{"tl":[0,0], "sz":[1,1]}]
+        // }
+        // function draw(actors){
+        //     actors.forEach( actor => {
+        //         c.fillStyle = 'black'
+        //         c.fillRect(actor.tl[0], actor.tl[0], 10, 10)
+        //     })
             
-        }
-        function animate(){
-            window.requestAnimationFrame(animate)
-            draw(actors["background"]);
-        }
-        animate()
+        // }
+        // function animate(){
+        //     window.requestAnimationFrame(animate)
+        //     draw(actors["background"]);
+        // }
+        // animate()
+        
         my_connection_id = null
         
         function rooms(rooms){
             put_area = document.getElementById("put_rooms");
             put_area.innerHTML = '';
-            console.log(rooms);
+            //console.log(rooms);
             rooms.forEach(element => {
                 new_div = document.createElement('div');
                 new_div.class = "col-sm-2";

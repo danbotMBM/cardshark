@@ -42,6 +42,11 @@ html, body{
     padding: 20px;
 }
 
+play_space{
+    font-size: 40px;
+    color: blueviolet;
+}
+
 #insetPhoto{
     width: 97%;
     padding: 5px;
