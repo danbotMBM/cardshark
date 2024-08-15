@@ -74,6 +74,7 @@ class simple_state():
         print("adding player: " + str(websocket))
         self.order = self.order + (websocket,)
         print(self.order)
+        return json.dumps({"youare" : hash(websocket)})
 
     def start(self):
         self.stacks = deal_cards(self.order)
@@ -84,21 +85,28 @@ class simple_state():
             self.pot = self.pot + self.stacks[websocket]
         if websocket in self.stacks.keys():
             del self.stacks[websocket] 
+        if websocket in self.stacks.keys():
+            del self.names[websocket]
+        turn = next_player(self.order, self.turn, self.stacks)
+        temp = list(self.order)
+        temp.remove(websocket)
+        self.order = tuple(temp)
+        return json.dumps({"turn": turn,"pot_size": len(self.pot), "disconnect": hash(websocket)})
 
     def handle(self, websocket, message):
         parsed = check_valid_message(message)
         if not parsed:
-            return (websocket, f"Invalid request rejected by server; {message}"), None
+            return [(websocket, f"Invalid request rejected by server; {message}")], None
         if parsed["cmd"] == "name":
             pass
         if parsed["cmd"] == "start" and self.state == "setup" and len(self.order) > 1:
             self.start()
             self.state = "round"
-            return [(p, str(len(self.stacks[p]))) for p in self.order], '{"cmd":"start"}'
+            return [], json.dumps({"cmd":"start", "order": [hash(w) for w in self.order], "turn": self.turn, "stacks":{hash(p): len(self.stacks[p]) for p in self.order}})
         if parsed["cmd"] == "play" and self.state == "round" and self.order[self.turn] == websocket:
             card, self.stacks, self.pot = play_card(websocket, self.stacks, self.pot)
             next_turn = next_player(self.order, self.turn, self.stacks)
-            broadcast_msg = json.dumps({"actor":hash(websocket), "plays":card})
+            broadcast_msg = json.dumps({"actor":hash(websocket), "turn": next_turn, "plays":card})
             if next_turn == self.turn:
                 self.state = "win"
                 #todo check for slap
@@ -115,7 +123,7 @@ class simple_state():
             self.pot = []
             self.turn = self.order.index(websocket)
             #todo check if win
-            broadcast_msg = json.dumps({"actor":hash(websocket), "wins_pot":"slap"})
+            broadcast_msg = json.dumps({"actor":hash(websocket), "wins_pot":"slap", "turn": self.turn, "stacks":{hash(p): len(self.stacks[p]) for p in self.order}})
             return [], broadcast_msg
         if parsed["cmd"] == "reset" and self.state == "win":
             temp = list(self.order)
@@ -125,6 +133,6 @@ class simple_state():
             self.turn = 0
             self.stacks = {}
             self.state = "setup"
-            return [], json.dumps({"reset": order})
+            return [], json.dumps({"reset": [hash(e) for e in self.order]})
         return [(websocket, f"state is not correct for {message}")], None 
 

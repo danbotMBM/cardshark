@@ -10,7 +10,8 @@ connections = set()
 state = simple_state.simple_state()
 async def handle_connection(websocket, path):
     connections.add(websocket)
-    state.connect(websocket)
+    join_msg = state.connect(websocket)
+    await websocket.send(join_msg)
     await websocket.send("Joined " + str(websocket) + "\n Group is :" + str(connections))
     try:
         async for message in websocket:
