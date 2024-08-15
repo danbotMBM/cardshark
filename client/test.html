@@ -22,14 +22,16 @@
             </nav>
         </div>
     </header>
-    <label for="textbox">Enter your room name:</label>
+    <label for="textbox">Send a custom message: </label>
     <input type="text" id="textbox" required>
     <button type="button" onclick="send_info()">send</button>
     <button type="button" onclick="send_cmd('start')">start game</button>
     <button type="button" onclick="send_cmd('play')">play card</button>
     <button type="button" onclick="send_cmd('slap')">slap</button>
+    <button type="button" onclick="send_cmd('reset')">reset</button>
 
     <p id="result"></p>
+    <ul id="player_canvas"><li><p>test</p></li></ul>
     <h1 id="play_space">test</p>
     <script src="test.js">
     </script>
