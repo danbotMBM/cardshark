@@ -12,6 +12,76 @@ function send_cmd(msg) {
 socket.addEventListener('open', (event) => {
     console.log('WebSocket connection opened:', event);
 });
+const canvas = document.getElementById("play_canvas");
+const ctx = canvas.getContext('2d');
+
+
+function resize_canvas(){
+    const aspectRatio = 16 / 9;
+
+    let width = window.innerWidth / 2;
+    let height = window.innerHeight/ 2;
+
+    if (width / height > aspectRatio) {
+        // If the viewport is wider than the aspect ratio, match height
+        width = height * aspectRatio;
+    } else {
+        // If the viewport is taller than the aspect ratio, match width
+        height = width / aspectRatio;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.font = `${canvas.width / 20}px Arial`; // Example: text size scales with canvas width
+
+    ctx.fillStyle = 'black'; // Set the text color
+    ctx.textAlign = 'center'; // Set text alignment
+    ctx.textBaseline = 'middle'; // Set the baseline alignment
+}
+resize_canvas();
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function draw_sprite(ctx, sprite, x, y, index){
+        if (sprite.loaded && index < sprite.length){
+            const sprite_x_coord = (index % sprite.num_in_row) * sprite.width;
+            const sprite_y_coord = Math.trunc(index / sprite.num_in_row) * sprite.height;
+            ctx.drawImage(sprite.img, sprite_x_coord, sprite_y_coord, sprite.width, sprite.height, x, y, sprite.width, sprite.height);
+        }
+        console.log("not loaded" + sprite.loaded + index + sprite.length);
+}
+class Sprite {
+    constructor(src, width, height, length, num_in_row){
+        self = this;
+        this.src = src;
+        this.img = new Image();
+        this.width = width;
+        this.height = height;
+        this.length = length;
+        this.num_in_row = num_in_row;
+        this.loaded = false;
+        this.img.onload = function(){self.loaded = true};
+        this.img.src = this.src;
+    }
+}
+
+
+const cards = new Sprite('cards.png', 73, 98, 52, 13);
+console.log(cards.src);
+const img = new Image();
+img.src = 'cards.png'
+window.addEventListener('resize', resize_canvas)
+function draw_debug(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillText("width: " + canvas.width + "height: " + canvas.height, canvas.width / 2, canvas.height / 2);
+   // ctx.drawImage(img, 0, 0, 74, 98, 0, 0, 74, 98);
+    state.pot.forEach(function(e, i){
+        draw_sprite(ctx, cards,canvas.width/2 - cards.width/2 + i *20, canvas.height/2 - cards.height/2 + i *20, e); 
+    });
+}
 
 function draw_players(order, turn, players, self_id){
     const player_canvas = document.getElementById("player_canvas");
@@ -40,6 +110,7 @@ let state = {
     "self": 0,
 };
 function draw_state() {
+    draw_debug();
     draw_players(state.order, state.turn, state.players, state.self);
     draw_pot(state.pot);
     requestAnimationFrame(draw_state);
@@ -102,6 +173,15 @@ socket.addEventListener('message', (event) => {
             Object.entries(response.stacks).forEach(([key, value]) => {
                 state.players[key].stackSize = value;
             })
+       }
+       if (response.hasOwnProperty("reset")){
+            state.order = response.reset;
+            state.players = {};
+            state.order.forEach((e, i) => {
+                state.players[e] = new Player(e, i, 0);
+            });
+            state.pot = [];
+            state.pot_size = 0;
        }
     }catch(error){
         if (error instanceof SyntaxError){
