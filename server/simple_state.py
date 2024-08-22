@@ -40,8 +40,6 @@ def play_card(websocket, stacks, pot):
 def check_valid_message(msg):
     try:
         parsed = json.loads(msg)
-        if parsed.get("cmd", None) == None:
-            return None
         return parsed
     except:
         return None
@@ -97,8 +95,9 @@ class simple_state():
         parsed = check_valid_message(message)
         if not parsed:
             return [(websocket, f"Invalid request rejected by server; {message}")], None
-        if parsed["cmd"] == "name":
-            pass
+        if parsed.get("name", ""):
+            self.names[websocket] = parsed["name"]
+            return [], json.dumps({"name": parsed["name"], "rename": hash(websocket)})
         if parsed["cmd"] == "start" and self.state == "setup" and len(self.order) > 1:
             self.start()
             self.state = "round"

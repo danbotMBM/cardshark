@@ -1,7 +1,7 @@
 const socket = new WebSocket('ws://danbotlab.local:8080');
 function send_info() {
     const textbox_contents = document.getElementById('textbox').value;
-    socket.send(textbox_contents);
+    socket.send('{"name":"'+textbox_contents+'"}');
 }
 function send_this(msg) {
     socket.send(msg);
@@ -75,12 +75,29 @@ const img = new Image();
 img.src = 'cards.png'
 window.addEventListener('resize', resize_canvas)
 function draw_debug(){
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillText("width: " + canvas.width + "height: " + canvas.height, canvas.width / 2, canvas.height / 2);
    // ctx.drawImage(img, 0, 0, 74, 98, 0, 0, 74, 98);
-    state.pot.forEach(function(e, i){
-        draw_sprite(ctx, cards,canvas.width/2 - cards.width/2 + i *20, canvas.height/2 - cards.height/2 + i *20, e); 
-    });
+}
+
+function draw_player(player, player_pos, num_players, self_id, turn){
+    xpos = (player_pos + 1) * (canvas.width) / (num_players + 1);
+    ypos = 0;
+    ctx.fillStyle = 'blue';
+    if (player.id == self_id){
+        // this is this browser's player
+        ctx.fillStyle = 'green';
+    }
+    ctx.fillRect(xpos, ypos, 50, 50);
+    if (player_pos == turn) {
+        ctx.strokeStyle = 'red';
+        ctx.strokeRect(xpos, ypos, 50, 50);
+    }
+    ctx.font = `20px Arial`;
+    ctx.fillStyle = 'black'; // Set the text color
+    ctx.textAlign = 'left'; // Set text alignment
+    ctx.textBaseline = 'top'; // Set the baseline alignment
+    ctx.fillText(player.stackSize, xpos, ypos);
+    ctx.fillText(player.name, xpos, ypos + 30);
 }
 
 function draw_players(order, turn, players, self_id){
@@ -94,11 +111,20 @@ function draw_players(order, turn, players, self_id){
         if (i == turn) li.textContent += "<== TURN";
         player_canvas.appendChild(li);
     }
+    for (let i = 0; i< order.length; i++){
+        const player = players[order[i]];
+        const player_pos = i;
+        draw_player(player, player_pos, order.length, self_id, turn);
+    }
+    
 }
 function draw_pot(pot){
     pot_area = document.getElementById("play_space");
     if (pot.length > 0) pot_area.innerHTML = pot;
     else pot_area.innerHTML = "";
+    state.pot.forEach(function(e, i){
+        draw_sprite(ctx, cards,canvas.width/2 - cards.width/2 + i *20, canvas.height/2 - cards.height/2 + i *20, e); 
+    });
 }
 
 let state = {
@@ -110,6 +136,7 @@ let state = {
     "self": 0,
 };
 function draw_state() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     draw_debug();
     draw_players(state.order, state.turn, state.players, state.self);
     draw_pot(state.pot);
@@ -151,6 +178,9 @@ socket.addEventListener('message', (event) => {
                 state.pot.shift();
             }
             state.players[response.actor].stackSize -= 1;
+       }
+       if (response.hasOwnProperty("name") && response.hasOwnProperty("rename")){
+            state.players[response.rename].name = response.name;
        }
        if (response.hasOwnProperty("order")){
             state.order = response.order;
