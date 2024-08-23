@@ -13,14 +13,48 @@ socket.addEventListener('open', (event) => {
     console.log('WebSocket connection opened:', event);
 });
 const canvas = document.getElementById("play_canvas");
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d'); 
+class BoundingBox {
+    constructor(x, y, w, h, f, p){
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.f = f;
+        this.p = p;
+    }
+}
 
+canvas.addEventListener('click', function(event) {
+    // Get the click coordinates relative to the canvas
+    const rect = canvas.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
 
+    // Check if the click is within the sprite's boundaries
+    boxes.forEach((b, i) => {
+        if (clickX >= b.x && clickX <= b.x + b.w &&
+            clickY >= b.y && clickY <= b.y + b.h) {
+            b.f(b.p);
+        }
+        
+    });
+});
+var mousex = 0;
+var mousey = 0;
+canvas.addEventListener('mousemove', function(event){
+    const rect = canvas.getBoundingClientRect();
+    mousex = event.clientX - rect.left;
+    mousey = event.clientY - rect.top; 
+});
+
+const BASE_W = 1280;
+const BASE_H = 720;
 function resize_canvas(){
     const aspectRatio = 16 / 9;
 
-    let width = window.innerWidth / 2;
-    let height = window.innerHeight/ 2;
+    let width = window.innerWidth * 3/4;
+    let height = window.innerHeight * 3/4;
 
     if (width / height > aspectRatio) {
         // If the viewport is wider than the aspect ratio, match height
@@ -34,11 +68,11 @@ function resize_canvas(){
     canvas.height = height;
     ctx.font = `${canvas.width / 20}px Arial`; // Example: text size scales with canvas width
 
+    boxes = [new BoundingBox(canvas.width/2 - cards.width/2, canvas.height/2 - cards.height/2 , 100, 100, send_cmd, "slap"), new BoundingBox(canvas.width - 100, 0, 200, canvas.height, send_cmd, "play")];
     ctx.fillStyle = 'black'; // Set the text color
     ctx.textAlign = 'center'; // Set text alignment
     ctx.textBaseline = 'middle'; // Set the baseline alignment
 }
-resize_canvas();
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -65,6 +99,7 @@ class Sprite {
         this.loaded = false;
         this.img.onload = function(){self.loaded = true};
         this.img.src = this.src;
+        
     }
 }
 
@@ -73,10 +108,10 @@ const cards = new Sprite('cards.png', 73, 98, 52, 13);
 console.log(cards.src);
 const img = new Image();
 img.src = 'cards.png'
-window.addEventListener('resize', resize_canvas)
+window.addEventListener('resize', resize_canvas);
 function draw_debug(){
     ctx.fillText("width: " + canvas.width + "height: " + canvas.height, canvas.width / 2, canvas.height / 2);
-   // ctx.drawImage(img, 0, 0, 74, 98, 0, 0, 74, 98);
+    document.getElementById('debug_place').textContent = `${mousex}, ${mousey}`;
 }
 
 function draw_player(player, player_pos, num_players, self_id, turn){
@@ -100,6 +135,7 @@ function draw_player(player, player_pos, num_players, self_id, turn){
     ctx.fillText(player.name, xpos, ypos + 30);
 }
 
+var boxes = [new BoundingBox(canvas.width/2 - cards.width/2, canvas.height/2 - cards.height/2 , 100, 100, send_cmd, "slap"), new BoundingBox(canvas.width - 100, 0, 200, canvas.height, send_cmd, "play")];
 function draw_players(order, turn, players, self_id){
     const player_canvas = document.getElementById("player_canvas");
     player_canvas.innerHTML = '';
@@ -230,3 +266,4 @@ socket.addEventListener('close', (event) => {
 socket.addEventListener('error', (event) => {
     console.error('WebSocket error:', event);
 });
+resize_canvas();

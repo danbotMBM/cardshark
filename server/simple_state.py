@@ -83,7 +83,7 @@ class simple_state():
             self.pot = self.pot + self.stacks[websocket]
         if websocket in self.stacks.keys():
             del self.stacks[websocket] 
-        if websocket in self.stacks.keys():
+        if websocket in self.names.keys():
             del self.names[websocket]
         turn = next_player(self.order, self.turn, self.stacks)
         temp = list(self.order)
