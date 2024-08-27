@@ -11,48 +11,36 @@
 
 <body>
 
-    <header class="container-fluid">
-        <div class="row align-items-center" id="">
-            <h1 class="col-sm-5 text-center" id="title">cardshark</h1>
-            <div class="col-sm-2"></div>
-            <nav class="col-sm-5 text-center">
-                <a class="navlink" class="align-middle" href="http://danielmarkjones.com">home</a>
-                <a class="navlink" class="align-middle" href="http://danielmarkjones.com/photos">photos</a>
-                <!-- TODO make reference to external navbar -->
-            </nav>
-        </div>
-    </header>
-    <form id="room_id_form">
-        <label for="room_id_input">Enter your room name:</label>
-        <input type="text" id="room_id_input" required>
-        <button type="button" onclick="create_room()">create room</button>
-    </form>
-    <button type="button" onclick="list_rooms()">refresh rooms</button>
-    <button type="button" onclick="start()">start</button>
-    <div class = "row"id="put_rooms">
-        
+    <div id="header_loc"></div>
+    <label for="textbox">Enter your name: </label>
+    <input type="text" id="textbox" required>
+    <button type="button" onclick="send_info()">confirm name</button>
+    <button type="button" onclick="send_cmd('start')">start game</button>
+    <button type="button" onclick="send_cmd('play')">play card</button>
+    <button type="button" onclick="send_cmd('slap')">slap</button>
+    <button type="button" onclick="send_cmd('reset')">reset</button>
+    <div class="row align-items-center justify-content-center" id="canvas_div">
+        <canvas style="background-color:rgb(28, 88, 43);" id="play_canvas">
     </div>
-    <div class = "row align-items-center justify-content-center" id ="playspace">
-        <canvas style="width: 80vw; height: 80vh; background-color:forestgreen;" id="playcanvas">
-    </div>
-    <p id="result2"></p>
-    <script src="game.js">
-    </script>
-    
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
-        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
-        integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
-        crossorigin="anonymous"></script>
+
+    <p id="result"></p>
+    <p id="debug_place">test2</p>
+    <ul id="player_canvas">
+        <li>
+            <p>test</p>
+        </li>
+    </ul>
+    <h1 id="play_space">test</h1>
+    <script src="test.js"></script>
     <script>
-
-
-
-
+        function import_html(html, loc) {
+            fetch(html)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById(loc).innerHTML = data;
+                });
+        }
+        import_html("../../header.html", "header_loc");
     </script>
 </body>
 

@@ -1,4 +1,4 @@
-const socket = new WebSocket('ws://danbotlab.local:8080');
+const socket = new WebSocket('wss://danielmarkjones.com:8081');
 function send_info() {
     const textbox_contents = document.getElementById('textbox').value;
     socket.send('{"name":"'+textbox_contents+'"}');
