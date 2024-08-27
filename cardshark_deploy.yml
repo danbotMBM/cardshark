@@ -1,0 +1,47 @@
+---
+- hosts: dmj
+  become: true
+  tasks:
+    - yum:
+        name: nginx
+    - copy:
+        src: client/cardshark_client.conf
+        dest: /etc/nginx/conf.d/cardshark_client.conf
+        owner: nginx
+        group: nginx
+        mode: '0644'
+      notify: reload nginx
+    - user:
+        name: server
+        uid: 1111
+    - file:
+        path: /etc/cardshark_server/cert/
+        owner: server
+        group: server
+        mode: '0740'
+        state: directory
+    - copy:
+        src: client/
+        dest: /data/cardshark/
+        owner: nginx
+        group: nginx
+        mode: '0644'
+    - copy:
+        src: server/
+        dest: /etc/cardshark_server/
+        owner: server
+        group: server
+        mode: '0740'
+    - copy:
+        remote_src: true
+        src: /etc/letsencrypt/live/danielmarkjones.com/fullchain.pem
+        dest: /etc/cardshark_server/cert/
+    - copy:
+        remote_src: true
+        src: /etc/letsencrypt/live/danielmarkjones.com/privkey.pem
+        dest: /etc/cardshark_server/cert/
+  handlers:
+    - name: reload nginx
+      systemd:
+        name: nginx
+        state: restarted

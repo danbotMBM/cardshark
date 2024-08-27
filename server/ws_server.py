@@ -1,6 +1,7 @@
 import simple_state
 import asyncio
 from websockets.server import serve
+import ssl
 
 async def broadcast(socks, msg):
     for w in socks:
@@ -26,7 +27,8 @@ async def handle_connection(websocket, path):
         print(str(websocket) + " connection terminated")
         state.disconnect(websocket)
         connections.remove(websocket)
-
-server = serve(handle_connection, "0.0.0.0", 8080)
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+ssl_context.load_cert_chain(certfile="/etc/cardshark_server/cert/fullchain.pem", keyfile="/etc/cardshark_server/cert/privkey.pem")
+server = serve(handle_connection, "0.0.0.0", 8081, ssl=ssl_context)
 asyncio.get_event_loop().run_until_complete(server)
 asyncio.get_event_loop().run_forever()
