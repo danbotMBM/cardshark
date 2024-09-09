@@ -66,12 +66,12 @@ function resize_canvas(){
 
     canvas.width = width;
     canvas.height = height;
-    ctx.font = `${canvas.width / 20}px Arial`; // Example: text size scales with canvas width
+    ctx.font = `20px Arial`;
+    ctx.fillStyle = 'black'; // Set the text color
+    ctx.textAlign = 'left'; // Set text alignment
+    ctx.textBaseline = 'top'; // Set the baseline alignment
 
     boxes = [new BoundingBox(canvas.width/2 - cards.width/2, canvas.height/2 - cards.height/2 , 100, 100, send_cmd, "slap"), new BoundingBox(canvas.width - 100, 0, 200, canvas.height, send_cmd, "play")];
-    ctx.fillStyle = 'black'; // Set the text color
-    ctx.textAlign = 'center'; // Set text alignment
-    ctx.textBaseline = 'middle'; // Set the baseline alignment
 }
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -110,17 +110,20 @@ const img = new Image();
 img.src = 'cards.png'
 window.addEventListener('resize', resize_canvas);
 function draw_debug(){
-    ctx.fillText("width: " + canvas.width + "height: " + canvas.height, canvas.width / 2, canvas.height / 2);
+    // ctx.fillText("width: " + canvas.width + "height: " + canvas.height, canvas.width / 2, canvas.height / 2);
+    ctx.strokeStyle = 'black';
+    ctx.strokeRect(canvas.width - 100, 0, 200, canvas.height);
+    ctx.fillText("play card", canvas.width - 90, canvas.height/2);
     document.getElementById('debug_place').textContent = `${mousex}, ${mousey}`;
 }
 
 function draw_player(player, player_pos, num_players, self_id, turn){
     xpos = (player_pos + 1) * (canvas.width) / (num_players + 1);
     ypos = 0;
-    ctx.fillStyle = 'blue';
+    ctx.fillStyle = 'green';
     if (player.id == self_id){
         // this is this browser's player
-        ctx.fillStyle = 'green';
+        ctx.fillStyle = 'blue';
     }
     ctx.fillRect(xpos, ypos, 50, 50);
     if (player_pos == turn) {
