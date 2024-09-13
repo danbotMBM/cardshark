@@ -30,7 +30,6 @@ export class Sprite {
             //reset the rotation and sprite center transformation
             ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
-        console.log("not loaded" + this.sprite_sheet.loaded + index + this.sprite_sheet.length);
     }
 }
 

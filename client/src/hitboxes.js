@@ -15,14 +15,12 @@ export class Hitbox {
     // check if the point (xpos, ypos) is within this hitbox
     check_is_within(xpos, ypos){
         if (this.rotation == 0){
-            console.log("no rotation");
             if (xpos >= this.x && xpos <= this.x + this.width * this.scale_x &&
                 ypos >= this.y && ypos <= this.y + this.height * this.scale_y) {
                 return true;
             }
         }
         var polygon = this.to_polygon();
-            console.log(polygon);
         return inside_polygon([xpos, ypos], polygon);
     }
     

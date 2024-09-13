@@ -2,7 +2,6 @@ import { Sprite }  from './src/sprites.js';
 import { SpriteSheet } from './src/sprites.js';
 import { Hitbox } from './src/hitboxes.js';
 
-
 function test(msg){
     console.log(msg);
 }
@@ -42,16 +41,26 @@ canvas.addEventListener('mousemove', function(event){
 });
 
 // set up animation
-var t = 0
-// TODO check frame rate
+var last_frame_time = performance.now();
+var frame_count = 0;
+var fps = 0;
+
+function calculate_fps(current_time){
+    const delta_time = current_time - last_frame_time;
+    frame_count++;
+    if (delta_time >= 1000){
+        fps = frame_count;
+        frame_count = 0;
+        last_frame_time = current_time;
+    }
+    document.getElementById('debug_place').textContent += ` FPS: ${fps}`;
+}
+
 function draw_frame(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    card.rotation += 1;
-    card.x = t % 200;
-    card.y = t % 50;
-    t+=1;
     card.draw(ctx);
-    document.getElementById('debug_place').textContent = `${mousex}, ${mousey}`;
+    document.getElementById('debug_place').textContent = `(mousex, mousey): (${mousex}, ${mousey})`;
+    calculate_fps(performance.now());
     requestAnimationFrame(draw_frame);
 }
 requestAnimationFrame(draw_frame);
