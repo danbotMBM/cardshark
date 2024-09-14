@@ -79,10 +79,10 @@ function draw_recursive(obj){
         obj.draw(ctx);
     }
 }
-function do_recurive(obj, func){
+function do_recursive(obj, func){
     if (is_iterable(obj)){
         for (const elem of obj){
-            do_recurive(elem, func);
+            do_recursive(elem, func);
         }
     }else{
         func(obj);
@@ -94,7 +94,7 @@ function draw_frame(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     draw_recursive(draw_objects);
     if (show_hitboxes) draw_recursive(clickable);
-    do_recurive(draw_objects, (e) => {
+    do_recursive(draw_objects, (e) => {
         e.rotation +=1; 
         e.x = e.x +.1 % 200 ;
     });
