@@ -47,7 +47,7 @@ class Cardshark_State{
             this.order = response.order;
             this.players = {};
             this.order.forEach((e, i) => {
-                this.players[e] = new Player(e, i);
+                this.players[e] = new Cardshark_Player(e, i);
             });
        }
        if (response.hasOwnProperty("turn")){
@@ -83,7 +83,7 @@ class Cardshark_State{
  class Cardshark_Player{
     constructor(id, turn_number){
         this.id = id;
-        this.turn_number = -1;
+        this.turn_number = turn_number;
         this.stack_size = 0;
         this.name = "Player";
     }
@@ -102,10 +102,9 @@ const game = new Cardshark_State();
 function test_button(){
     game.play_card(Math.floor(Math.random() * 52));
 }
-document.getElementById('test_button').addEventListener('click', test_button);
 
 // websocket stuff
-const socket = new WebSocket('wss://danbotlab.local:8081');
+const socket = new WebSocket('wss://danielmarkjones.com:8081');
 
 function send_info() {
     const textbox_contents = document.getElementById('textbox').value;
@@ -120,6 +119,12 @@ function send_cmd(msg) {
 socket.addEventListener('open', (event) => {
     console.log('WebSocket connection opened:', event);
 });
+document.getElementById('test_button').addEventListener('click', test_button);
+document.getElementById('send_name').addEventListener('click', send_info);
+document.getElementById('start_game').addEventListener('click', () => { send_cmd("start")});
+document.getElementById('play_card').addEventListener('click', () => { send_cmd("play")});
+document.getElementById('slap_pile').addEventListener('click', () => { send_cmd("slap")});
+document.getElementById('reset_game').addEventListener('click', () => { send_cmd("reset")});
 
 socket.addEventListener('message', (event) => {
     console.log('Message from server:', event.data);
@@ -128,7 +133,7 @@ socket.addEventListener('message', (event) => {
     try {
         response = JSON.parse(event.data);
         game.handle(response);
-    }catch{
+    }catch(error){
         if (error instanceof SyntaxError){
             console.log("incorrect parse" + event.data)
         }

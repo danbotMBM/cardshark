@@ -14,11 +14,11 @@
     <div id="header_loc"></div>
     <label for="textbox">Enter your name: </label>
     <input type="text" id="textbox" required>
-    <button type="button" onclick="send_info()">confirm name</button>
-    <button type="button" onclick="send_cmd('start')">start game</button>
-    <button type="button" onclick="send_cmd('play')">play card</button>
-    <button type="button" onclick="send_cmd('slap')">slap</button>
-    <button type="button" onclick="send_cmd('reset')">reset</button>
+    <button type="button" id="send_name">confirm name</button>
+    <button type="button" id="start_game">start game</button>
+    <button type="button" id="play_card">play card</button>
+    <button type="button" id="slap_pile">slap</button>
+    <button type="button" id="reset_game">reset</button>
     <div class="row align-items-center justify-content-center" id="canvas_div">
         <canvas style="background-color:rgb(28, 88, 43);" width="1280" height="720" id="play_canvas">
     </div>
