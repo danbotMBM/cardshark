@@ -4,8 +4,6 @@ export class Hitbox {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.scale_x = 1;
-        this.scale_y = 1;
         this.rotation = 0;
         this.f = f;
         this.params = params;
@@ -15,8 +13,8 @@ export class Hitbox {
     // check if the point (xpos, ypos) is within this hitbox
     check_is_within(xpos, ypos){
         if (this.rotation == 0){
-            if (xpos >= this.x && xpos <= this.x + this.width * this.scale_x &&
-                ypos >= this.y && ypos <= this.y + this.height * this.scale_y) {
+            if (xpos >= this.x && xpos <= this.x + this.width &&
+                ypos >= this.y && ypos <= this.y + this.height) {
                 return true;
             }
         }
@@ -25,16 +23,16 @@ export class Hitbox {
     }
     
     get_center(){
-        return [this.x + this.width * this.scale_x / 2, this.y + this.height * this.scale_y / 2];
+        return [this.x + this.width / 2, this.y + this.height / 2];
     }
     
     to_polygon(){
         var points = [];
         var center = this.get_center();
         points.push(rotate_point([this.x, this.y], center, this.rotation));
-        points.push(rotate_point([this.x + this.width * this.scale_x, this.y], center, this.rotation));
-        points.push(rotate_point([this.x + this.width * this.scale_x, this.y + this.height * this.scale_y], center, this.rotation));
-        points.push(rotate_point([this.x, this.y + this.height * this.scale_y], center, this.rotation));
+        points.push(rotate_point([this.x + this.width, this.y], center, this.rotation));
+        points.push(rotate_point([this.x + this.width, this.y + this.height], center, this.rotation));
+        points.push(rotate_point([this.x, this.y + this.height], center, this.rotation));
         return points;
     }
 
@@ -42,10 +40,21 @@ export class Hitbox {
         this.x = this.linked_to_img.x;
         this.y = this.linked_to_img.y;
         this.width = this.linked_to_img.visual_width();
-        this.h = this.linked_to_img.visual_height();
-        this.scale_x = this.linked_to_img.scale_x;
-        this.scale_y = this.linked_to_img.scale_y;
+        this.height = this.linked_to_img.visual_height();
         this.rotation = this.linked_to_img.rotation;
+    }
+    
+    draw(ctx){
+        this.update_to_link();
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';;
+        // change the context point to be the center of the sprite for rotation
+        ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+        // apply the rotation in degrees
+        ctx.rotate(this.rotation * Math.PI / 180);
+        // draw just the sprite at the given index
+        ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+        //reset the rotation and sprite center transformation
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
     
 }
