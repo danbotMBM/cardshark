@@ -2,7 +2,8 @@ import { Sprite }  from './src/sprites.js';
 import { SpriteSheet } from './src/sprites.js';
 import { Hitbox } from './src/hitboxes.js';
 import { is_iterable } from './src/utils.js';
-
+import { do_recursive } from './src/utils.js';
+import { do_recursive_till_true } from './src/utils.js';
 
 // game state stuff
 class Cardshark_State{
@@ -13,22 +14,23 @@ class Cardshark_State{
         this.pot = [];
         this.pot_hitboxes = [];
         this.self = -1;
-        this.message = "";
+        this.message = ""; 
+        this.buttons = [];
     }
 
     play_card(card){
         const randomness = 40; //distance in pixels that the cards can deviate
         const randomness_degrees = 40;
         const s = new Sprite(cards_sprite_sheet);
-        s.scale_x = 2;
-        s.scale_y = 2;
+        s.scale_x = 1/10;
+        s.scale_y = 1/10;
         s.index = card;
         s.x = pot_center[0] - s.visual_width() / 2;
         s.x += Math.random() * randomness*2 - randomness; 
         s.y = pot_center[1] - s.visual_height() / 2;
         s.y += Math.random() * randomness*2 - randomness; 
         s.rotation += Math.random() * randomness_degrees*2 - randomness_degrees; 
-        const h = new Hitbox(s.x, s.y, s.visual_width(), s.visual_height(), (e) => {console.log(e)}, "testing");
+        const h = new Hitbox(s.x, s.y, s.visual_width(), s.visual_height(), (e) => {send_cmd("slap")});
         h.linked_to_img = s;
         this.pot.push(s);
         this.pot_hitboxes.push(h);
@@ -95,12 +97,13 @@ function test(msg){
 // set up for client
 const canvas = document.getElementById("play_canvas");
 const ctx = canvas.getContext('2d');
-const cards_sprite_sheet = new SpriteSheet('cards.png', 73, 98, 52, 13);
+const cards_sprite_sheet = new SpriteSheet('./sprites/family.jpg', 1500, 2047, 16, 4);
 const pot_center = [canvas.width / 2, canvas.height / 2];
 const game = new Cardshark_State();
 
 function test_button(){
-    game.play_card(Math.floor(Math.random() * 52));
+    show_hitboxes = !show_hitboxes;
+    // game.play_card(Math.floor(Math.random() * 16));
 }
 
 // websocket stuff
@@ -110,15 +113,19 @@ function send_info() {
     const textbox_contents = document.getElementById('textbox').value;
     socket.send('{"name":"'+textbox_contents+'"}');
 }
+
 function send_this(msg) {
     socket.send(msg);
 }
+
 function send_cmd(msg) {
     socket.send('{"cmd":"'+msg+'"}')
 }
+
 socket.addEventListener('open', (event) => {
     console.log('WebSocket connection opened:', event);
 });
+
 document.getElementById('test_button').addEventListener('click', test_button);
 document.getElementById('send_name').addEventListener('click', send_info);
 document.getElementById('start_game').addEventListener('click', () => { send_cmd("start")});
@@ -157,13 +164,15 @@ canvas.addEventListener('click', function(event) {
     const rect = canvas.getBoundingClientRect();
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
-    for (let i = game.pot_hitboxes.length - 1; i >= 0; i--) {
-        let e = game.pot_hitboxes[i];
+    const res = do_recursive_till_true([game.buttons,[...game.pot_hitboxes].reverse()], (e) => {
         if (e.linked_to_img != null) e.update_to_link();
         if(e.check_is_within(clickX, clickY)) {
-                e.f(e.params);
-                break;
+                e.f();
+                return true;
         }
+        return false;
+    });
+    for (let i = game.pot_hitboxes.length - 1; i >= 0; i--) {
     }
 });
 
@@ -201,22 +210,24 @@ function draw_recursive(obj){
         obj.draw(ctx);
     }
 }
-function do_recursive(obj, func){
-    if (is_iterable(obj)){
-        for (const elem of obj){
-            do_recursive(elem, func);
-        }
-    }else{
-        func(obj);
-    }
-}
+
+const deck_sprite = new Sprite(cards_sprite_sheet);
+deck_sprite.index = 0;
+deck_sprite.scale_x = .1;
+deck_sprite.scale_y = .1;
+deck_sprite.x = 800;
+deck_sprite.y = 530;
+const play_card_button = new Hitbox(deck_sprite.x, deck_sprite.y, deck_sprite.visual_width(), deck_sprite.visual_height(), () => {send_cmd("play")});
+play_card_button.linked_to_img = deck_sprite;
+game.buttons.push(play_card_button);
 
 // handle rendering
 var show_hitboxes = false;
 function draw_frame(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    draw_recursive(game.pot);
-    if (show_hitboxes) draw_recursive(game.pot_hitboxes);
+    draw_recursive(deck_sprite);
+    draw_recursive([game.pot]);
+    if (show_hitboxes) draw_recursive([game.buttons, game.pot_hitboxes]);
     document.getElementById('debug_place').textContent = `(mousex, mousey): (${mousex}, ${mousey})`;
     calculate_fps(performance.now());
     requestAnimationFrame(draw_frame);

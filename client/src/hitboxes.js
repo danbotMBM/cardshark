@@ -1,12 +1,11 @@
 export class Hitbox {
-    constructor(x, y, width, height, f, params){
+    constructor(x, y, width, height, f){
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.rotation = 0;
         this.f = f;
-        this.params = params;
         this.linked_to_img = null;
     }
 
