@@ -3,14 +3,16 @@
 <html>
 
 <head>
-    <title>Danbot Lab</title>
+    <title>daniel mark jones</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
         integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-    <link href="mainStyle.css" type="text/css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://danielmarkjones.com/gitlab_md.css">
+    <link href="https://danielmarkjones.com/header.css" type="text/css" rel="stylesheet">
+    <link href="https://danielmarkjones.com/mainStyle.css" type="text/css" rel="stylesheet">
 </head>
 
 <body>
-
     <div id="header_loc"></div>
     <label for="textbox">Enter your name: </label>
     <input type="text" id="textbox" required>
@@ -20,7 +22,7 @@
     <button type="button" id="slap_pile">slap</button>
     <button type="button" id="reset_game">reset</button>
     <div class="row align-items-center justify-content-center" id="canvas_div">
-        <canvas style="background-color:rgb(28, 88, 43);" width="1280" height="720" id="play_canvas">
+        <canvas style="background-color:rgb(28, 88, 43);" id="play_canvas">
     </div>
     <button type="button" id="test_button">test_button</button>
     <p id="result"></p>
@@ -40,7 +42,7 @@
                     document.getElementById(loc).innerHTML = data;
                 });
         }
-        import_html("../../header.html", "header_loc");
+        import_html("https://danielmarkjones.com/header.html", "header_loc");
     </script>
 </body>
 

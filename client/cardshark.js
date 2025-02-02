@@ -4,6 +4,7 @@ import { Hitbox } from './src/hitboxes.js';
 import { is_iterable } from './src/utils.js';
 import { do_recursive } from './src/utils.js';
 import { do_recursive_till_true } from './src/utils.js';
+import { Your_Deck } from './src/objects.js';
 
 // game state stuff
 class Cardshark_State{
@@ -72,11 +73,14 @@ class Cardshark_State{
             this.order = response.reset;
             this.players = {};
             this.order.forEach((e, i) => {
-                this.players[e] = new Player(e, i, 0);
+                this.players[e] = new Cardshark_Player(e, i);
             });
             this.pot = [];
             this.pot_hitboxes = [];
             this.pot_size = 0;
+       }
+       for (const e of this.order){
+            this.players[e].displayPlayerInfo();
        }
     }
 
@@ -88,6 +92,11 @@ class Cardshark_State{
         this.turn_number = turn_number;
         this.stack_size = 0;
         this.name = "Player";
+    }
+    displayPlayerInfo() {
+        console.log(`Player ${this.name} (ID: ${this.id})`);
+        console.log(`Turn Number: ${this.turn_number}`);
+        console.log(`Stack Size: ${this.stack_size}`);
     }
 }
 function test(msg){
@@ -211,21 +220,16 @@ function draw_recursive(obj){
     }
 }
 
-const deck_sprite = new Sprite(cards_sprite_sheet);
-deck_sprite.index = 0;
-deck_sprite.scale_x = .1;
-deck_sprite.scale_y = .1;
-deck_sprite.x = 800;
-deck_sprite.y = 530;
-const play_card_button = new Hitbox(deck_sprite.x, deck_sprite.y, deck_sprite.visual_width(), deck_sprite.visual_height(), () => {send_cmd("play")});
-play_card_button.linked_to_img = deck_sprite;
-game.buttons.push(play_card_button);
+const hitbox = new Hitbox(0, 0, 0, 0, () => {send_cmd("play")});
+const your_deck = new Your_Deck(800, 530, new Sprite(cards_sprite_sheet), hitbox);
+game.buttons.push(your_deck.play_card_button);
 
 // handle rendering
 var show_hitboxes = false;
 function draw_frame(){
+    if (game.players[game.self] != null) your_deck.player = game.players[game.self];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    draw_recursive(deck_sprite);
+    draw_recursive(your_deck);
     draw_recursive([game.pot]);
     if (show_hitboxes) draw_recursive([game.buttons, game.pot_hitboxes]);
     document.getElementById('debug_place').textContent = `(mousex, mousey): (${mousex}, ${mousey})`;
